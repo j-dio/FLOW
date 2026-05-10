@@ -52,4 +52,4 @@ function applyTransition(state, symbol) {
   return TRANSITIONS[state]?.[symbol] ?? state;
 }
 
-module.exports = { STATES, SYMBOLS, applyTransition };
+export { STATES, SYMBOLS, applyTransition };
