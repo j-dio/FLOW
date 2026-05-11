@@ -127,7 +127,30 @@ io.on('connection', (socket) => {
     io.to(data.workspaceId).emit('task_created', { task: task.toJSON() });
   });
 
-  // apply_transition goes here
+  socket.on('apply_transition', (data) => {
+    if (!data?.userId || !data?.workspaceId || !data?.taskId || !data?.symbol) return;
+
+    const { userId, workspaceId, taskId, symbol, estimateMinutes } = data;
+
+    const ws = workspaces.get(workspaceId);
+    if (!ws) return;
+
+    const task = ws.getTask(taskId);
+    if (!task) return;
+
+    if (symbol === 'provide_valid_estimate') {
+      task.setEstimate(estimateMinutes);
+    }
+
+    const result = task.transition(symbol, userId, ws.members.size);
+
+    if (!result.ok) {
+      console.log(`[transition rejected] ${result.reason} — workspaceId=${workspaceId} taskId=${taskId} userId=${userId} symbol=${symbol}`);
+      return;
+    }
+
+    io.to(workspaceId).emit('task_updated', { task: task.toJSON() });
+  });
 
   socket.on('disconnect', () => {
     if (!currentWorkspaceId || !currentUserId) return;
