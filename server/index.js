@@ -115,7 +115,19 @@ io.on('connection', (socket) => {
     io.to(data.workspaceId).emit('member_update', { members: ws.getMembersArray() });
   });
 
-  // sprint 2: create_task and apply_transition handlers go here
+  socket.on('create_task', (data) => {
+    if (!data?.userId || !data?.workspaceId || !data?.name) return;
+
+    const ws = workspaces.get(data.workspaceId);
+    if (!ws) return;
+
+    const task = new Task(data.name, data.userId);
+    ws.addTask(task);
+
+    io.to(data.workspaceId).emit('task_created', { task: task.toJSON() });
+  });
+
+  // apply_transition goes here
 
   socket.on('disconnect', () => {
     if (!currentWorkspaceId || !currentUserId) return;
